@@ -107,8 +107,17 @@ show up as columns in the sidebar, and assigning a column is dragging a note.
 | Use `[[Wikilinks]]` | **Off** | Astro cannot resolve `![[image.png]]`; every embed would silently break |
 | New link format | **Relative path to file** | Absolute vault paths don't match the deployed URLs |
 
-Optional but useful: set the attachment folder to `../../public/attachments` so
-pasted images land somewhere the site can serve them.
+**Attachments need a decision.** Obsidian's attachment folder has to live inside
+the vault, so a vault rooted at `src/content/` cannot be pointed at
+`public/attachments/`. Two options:
+
+- Keep the vault at `src/content/` and drop attachment files into
+  `public/attachments/<column>/<post-slug>/` through Finder. Simplest, but
+  pasting an image into a note won't land it in the right place.
+- Root the vault at the **repo root** instead. Pasted attachments can then go to
+  `public/attachments/`, at the cost of Obsidian showing you the whole repo —
+  mitigate with Settings → Files and links → Excluded files (`src/pages`,
+  `src/components`, `node_modules`, `dist`).
 
 To publish, commit and push. The [Obsidian Git](https://github.com/Vinzent03/obsidian-git)
 plugin can do that on a timer if you'd rather not touch a terminal.
