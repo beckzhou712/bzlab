@@ -44,9 +44,9 @@
 
 - [x] 6.1 Add `.github/workflows/deploy.yml` building with the `.nvmrc` Node version and deploying to GitHub Pages on push to `main`
 - [x] 6.2 `git init`, commit everything with no AI attribution in the message, and confirm `git log` is clean
-- [ ] 6.3 **USER ACTION** — `gh` is a dead x86_64 binary and `~/.ssh/id_ed25519` is rejected by GitHub (`Permission denied (publickey)`), so neither repo creation nor push can be automated. Beck must: create the `bzlab` repo on github.com, register the SSH public key (or supply an HTTPS token), then set Pages source to "GitHub Actions" in repo settings
-- [ ] 6.4 Push to `main` and confirm the Actions workflow succeeds
-- [ ] 6.5 Load the deployed site and confirm no 404s in the console, search returns results, and both feed tiers fetch
+- [x] 6.3 **USER ACTION** — `gh` is a dead x86_64 binary and `~/.ssh/id_ed25519` is rejected by GitHub (`Permission denied (publickey)`), so neither repo creation nor push can be automated. Beck must: create the `bzlab` repo on github.com, register the SSH public key (or supply an HTTPS token), then set Pages source to "GitHub Actions" in repo settings
+- [x] 6.4 Push to `main` and confirm the Actions workflow succeeds
+- [x] 6.5 Load the deployed site and confirm no 404s in the console, search returns results, and both feed tiers fetch
 
 ## 7. Authoring setup
 
