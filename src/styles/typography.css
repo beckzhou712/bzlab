@@ -95,6 +95,14 @@
       }
     }
 
+    /* Body is serif; anything code-shaped stays monospace so it aligns. */
+    code,
+    kbd,
+    samp,
+    pre {
+      @apply font-app-code;
+    }
+
     code {
       @apply bg-muted/75 text-foreground rounded p-1 wrap-break-word before:content-none after:content-none;
     }

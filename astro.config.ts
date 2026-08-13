@@ -63,13 +63,25 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  // Serif for body text, mono for code. A research notebook is read in
+  // paragraphs, and monospace at paragraph length is tiring — but code still
+  // needs to align. Both are from the IBM Plex family so they sit together.
   fonts: [
     {
-      name: "Google Sans Code",
-      cssVariable: "--font-google-sans-code",
+      name: "IBM Plex Serif",
+      cssVariable: "--font-body",
+      provider: fontProviders.google(),
+      fallbacks: ["Georgia", "serif"],
+      weights: [400, 500, 600, 700],
+      styles: ["normal", "italic"],
+      formats: ["woff", "ttf"],
+    },
+    {
+      name: "IBM Plex Mono",
+      cssVariable: "--font-code",
       provider: fontProviders.google(),
       fallbacks: ["monospace"],
-      weights: [300, 400, 500, 600, 700],
+      weights: [400, 500, 600, 700],
       styles: ["normal", "italic"],
       formats: ["woff", "ttf"],
     },

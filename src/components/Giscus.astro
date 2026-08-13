@@ -1,0 +1,78 @@
+---
+/**
+ * Comments via giscus, backed by this repo's GitHub Discussions.
+ *
+ * No database and no third-party account: a comment is a Discussion reply, so
+ * the conversation lives in the same repo as the post and survives the site.
+ * Discussions are created lazily in the Announcements category, where only
+ * maintainers can open threads — visitors can only reply.
+ */
+---
+
+<section class="giscus mt-12" aria-label="Comments"></section>
+
+<script>
+  const GISCUS_ORIGIN = "https://giscus.app";
+
+  const ATTRS: Record<string, string> = {
+    "data-repo": "beckzhou712/bzlab",
+    "data-repo-id": "R_kgDOT237Kg",
+    "data-category": "Announcements",
+    "data-category-id": "DIC_kwDOT237Ks4DDQkL",
+    // Map by URL path: stable across title edits, unique per post.
+    "data-mapping": "pathname",
+    "data-strict": "1",
+    "data-reactions-enabled": "1",
+    "data-emit-metadata": "0",
+    "data-input-position": "bottom",
+    "data-lang": "en",
+    "data-loading": "lazy",
+  };
+
+  function currentTheme(): string {
+    return document.documentElement.getAttribute("data-theme") === "dark"
+      ? "dark_dimmed"
+      : "light";
+  }
+
+  function mount(): void {
+    const container = document.querySelector<HTMLElement>(".giscus");
+    if (!container) return;
+
+    // Clear any frame left over from a previous page in the same SPA session.
+    container.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src = `${GISCUS_ORIGIN}/client.js`;
+    script.crossOrigin = "anonymous";
+    script.async = true;
+    for (const [key, value] of Object.entries(ATTRS)) {
+      script.setAttribute(key, value);
+    }
+    script.setAttribute("data-theme", currentTheme());
+    container.appendChild(script);
+  }
+
+  /** giscus renders in a cross-origin iframe, so theme changes go by postMessage. */
+  function pushTheme(): void {
+    const frame =
+      document.querySelector<HTMLIFrameElement>("iframe.giscus-frame");
+    frame?.contentWindow?.postMessage(
+      { giscus: { setConfig: { theme: currentTheme() } } },
+      GISCUS_ORIGIN
+    );
+  }
+
+  function watchTheme(): void {
+    new MutationObserver(pushTheme).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  }
+
+  mount();
+  watchTheme();
+
+  // ClientRouter swaps the DOM without a reload, so remount on each navigation.
+  document.addEventListener("astro:after-swap", mount);
+</script>
