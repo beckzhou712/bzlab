@@ -8,9 +8,6 @@ tags:
   - meta
 ---
 
-> **This post is a skeleton.** Everything marked TODO is a placeholder for Beck to
-> fill in. Delete this blockquote once the post says something real.
-
 ## What VIDA is
 
 TODO — one paragraph a stranger can follow. What is the problem, and why does it
