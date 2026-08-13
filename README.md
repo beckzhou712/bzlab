@@ -97,27 +97,39 @@ find them automatically.
 
 ## Writing in Obsidian
 
-Point a new Obsidian vault at **`src/content/`**. Folders under `posts/` then
-show up as columns in the sidebar, and assigning a column is dragging a note.
+**The vault already exists** — it is `src/content/`. Open Obsidian → "Open folder
+as vault" → pick that folder. Folders under `posts/` show up as columns in the
+sidebar, so assigning a column is dragging a note.
 
-**Two settings must be changed**, under Settings → Files and links:
+Settings are pre-seeded in `src/content/.obsidian/app.json` and tracked in git,
+so a second machine gets the same vault. Three of them are load-bearing:
 
 | Setting | Value | Why |
 | --- | --- | --- |
 | Use `[[Wikilinks]]` | **Off** | Astro cannot resolve `![[image.png]]`; every embed would silently break |
 | New link format | **Relative path to file** | Absolute vault paths don't match the deployed URLs |
+| Attachment folder | **`attachments`** | Puts pasted images where Astro can find them |
 
-**Attachments need a decision.** Obsidian's attachment folder has to live inside
-the vault, so a vault rooted at `src/content/` cannot be pointed at
-`public/attachments/`. Two options:
+### Two kinds of attachment
 
-- Keep the vault at `src/content/` and drop attachment files into
-  `public/attachments/<column>/<post-slug>/` through Finder. Simplest, but
-  pasting an image into a note won't land it in the right place.
-- Root the vault at the **repo root** instead. Pasted attachments can then go to
-  `public/attachments/`, at the cost of Obsidian showing you the whole repo —
-  mitigate with Settings → Files and links → Excluded files (`src/pages`,
-  `src/components`, `node_modules`, `dist`).
+**Images: just paste them.** A screenshot pasted into a note lands in
+`src/content/attachments/`, and Astro's asset pipeline picks it up from the
+relative link Obsidian writes — content-hashed filename, `width`/`height` filled
+in so the page doesn't shift while loading, and `loading="lazy"`. Obsidian's
+default `Pasted image 20260813....png` name with its spaces resolves correctly;
+so does the `../../` depth of a post inside a column folder. Both are verified.
+
+**Everything else: Finder.** The pipeline only rewrites images. A relative link
+to a `.csv` or `.pdf` is emitted literally and 404s in production. Those go in
+`public/attachments/<column>/<post-slug>/` and are linked absolutely:
+
+```markdown
+[sample-data.csv](/bzlab/attachments/kitchen-sink/sample-data.csv)
+```
+
+**Linking between posts** follows the same rule as non-image files — Astro does
+not rewrite `[x](./other-post.md)`. Cross-link with the deployed path instead:
+`[x](/bzlab/posts/vida/why-vida/)`.
 
 To publish, commit and push. The [Obsidian Git](https://github.com/Vinzent03/obsidian-git)
 plugin can do that on a timer if you'd rather not touch a terminal.

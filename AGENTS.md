@@ -28,6 +28,15 @@ seen. Don't unify them.
 drafts in dev too, so `draft` would hide `src/content/posts/kitchen-sink.md` from
 its own purpose. `!draft && (DEV || published)` renders it in dev only.
 
+**Attachments follow two rules, not one.** Images go in
+`src/content/attachments/` and are linked relatively — Astro's asset pipeline
+hashes them and infers `width`/`height`. Everything else (csv, pdf) goes in
+`public/attachments/<column>/<post-slug>/` and is linked absolutely under
+`/bzlab/...`, because the pipeline only rewrites images; a relative link to a
+non-image is emitted verbatim and 404s. Same trap for post-to-post links.
+`src/content/attachments/` is the Obsidian vault's attachment folder, which is
+why it sits inside `src/content/` and not in `public/`.
+
 **Markdown tables are wrapped by `rehypeTableWrapper`.** The theme ships
 `ResponsiveTable.astro` but nothing references it — it's for MDX authors to reach
 for by hand. Plain `.md` tables would push the page sideways on mobile without

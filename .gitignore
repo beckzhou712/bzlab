@@ -31,3 +31,7 @@ public/pagefind
 
 # docker compose
 compose.override.yaml
+
+# obsidian per-machine UI state (settings in app.json are intentionally tracked)
+src/content/.obsidian/workspace*.json
+src/content/.obsidian/cache

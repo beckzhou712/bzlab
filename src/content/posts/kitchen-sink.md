@@ -117,13 +117,23 @@ A table wide enough to overflow on mobile:
 
 ## Image
 
+Absolute, straight out of `public/` — unprocessed, no dimensions inferred:
+
 ![Sample figure](/bzlab/attachments/kitchen-sink/sample-figure.svg)
+
+Relative, the way Obsidian writes a pasted screenshot. The filename deliberately
+contains spaces, because that is Obsidian's default paste name and the URL
+encoding is the part most likely to break. This one should come out of the build
+with a hashed filename and `width`/`height` attributes:
+
+![Pasted screenshot](../attachments/Pasted%20image%2020260813010101.svg)
 
 ## Attachments
 
-Attachments live under `public/attachments/<column>/<post-slug>/` and are linked
-as plain markdown links. Files under `public/` skip Astro's asset pipeline, so a
-PDF or CSV downloads byte-for-byte:
+Non-image attachments live under `public/attachments/<column>/<post-slug>/` and
+are linked absolutely. Files under `public/` skip Astro's asset pipeline, so a
+PDF or CSV downloads byte-for-byte — and unlike images, a *relative* link to one
+would be emitted verbatim and 404:
 
 - [sample-data.csv](/bzlab/attachments/kitchen-sink/sample-data.csv)
 
@@ -134,3 +144,4 @@ PDF or CSV downloads byte-for-byte:
 - No horizontal scroll on the page body — only inside code blocks and tables
 - Footnote marker links down and back
 - Callouts styled, not literal
+- Both images render, and the relative one has `width`/`height` in the HTML

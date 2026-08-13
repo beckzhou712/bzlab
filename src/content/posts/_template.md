@@ -12,6 +12,12 @@ tags:
   Files starting with `_` are ignored by the build, so this template never publishes.
 
   Required: title, pubDatetime, description. The build fails without them.
-  Attachments go in public/attachments/<column>/<this-post-slug>/ and are linked
-  as /bzlab/attachments/<column>/<this-post-slug>/<file>.
+
+  Images: paste them straight into Obsidian. They land in src/content/attachments/
+  and Astro resolves the relative link it writes.
+
+  Other files (csv, pdf, ...): the pipeline only handles images, so put them in
+  public/attachments/<column>/<this-post-slug>/ and link them absolutely as
+  /bzlab/attachments/<column>/<this-post-slug>/<file>. Same for links to other
+  posts — use /bzlab/posts/<column>/<slug>/, not a relative .md path.
 -->
