@@ -1,0 +1,67 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Main from "@/components/Main.astro";
+import Card from "@/components/Card.astro";
+import Footer from "@/components/Footer.astro";
+import { getColumns } from "@/utils/getColumns";
+import config from "@/config";
+
+export const getStaticPaths = (async () => {
+  const columns = await getColumns();
+  return columns.map(column => ({
+    params: { column: column.slug },
+    props: { column },
+  }));
+}) satisfies GetStaticPaths;
+
+const { column } = Astro.props;
+
+const locale = Astro.currentLocale ?? config.site.lang;
+
+// getColumns returns newest-first. A column is a narrative, so read it forward:
+// oldest post first, the way the research actually happened.
+const postsInReadingOrder = [...column.posts].reverse();
+
+const feedHref = new URL(
+  getRelativeLocaleUrl(locale, `columns/${column.slug}/rss.xml`),
+  Astro.site
+).href;
+---
+
+<Layout
+  title={`${column.title} | ${config.site.title}`}
+  description={column.description ?? config.site.description}
+>
+  <Fragment slot="head">
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${config.site.title} — ${column.title}`}
+      href={feedHref}
+    />
+  </Fragment>
+
+  <Header />
+
+  <Breadcrumb />
+
+  <Main pageTitle={column.title} pageDesc={column.description}>
+    <p class="mb-6">
+      <a
+        href={feedHref}
+        class="text-accent decoration-dashed underline-offset-4 hover:underline"
+      >
+        Subscribe to this column
+      </a>
+    </p>
+    <ul>
+      {postsInReadingOrder.map(post => <Card {...post} />)}
+    </ul>
+  </Main>
+
+  <Footer />
+</Layout>

@@ -1,0 +1,37 @@
+schema: spec-driven
+
+context: |
+  Project: bzlab — Beck Zhou's "build in public" research site.
+  Purpose: publish an ongoing, chronological record of research work (motivation,
+  dead ends, partial results, papers) so the process itself is visible. The site
+  URL goes on Beck's resume; the site does NOT host the resume.
+
+  Tech stack: Astro 7 + AstroPaper v6.1.0 theme (MIT), TypeScript, Tailwind 4,
+  MDX, pagefind search. Node 24 LTS via nvm (arm64), pinned with .nvmrc.
+  Deploy: GitHub Pages at https://beckzhou712.github.io/bzlab/ (subpath — Astro
+  `base` must be set). Built and deployed by GitHub Actions on push to main.
+
+  Core information architecture: a COLUMN is a long-running research thread
+  (first one: VIDA). Columns are the vertical/narrative axis — reading a column
+  top to bottom should tell the story of one project from idea to result. Tags
+  are the horizontal/retrieval axis and are orthogonal to columns.
+  A post belongs to exactly one column, derived from its DIRECTORY under
+  src/content/posts/<column>/, never from a frontmatter field — the author
+  writes in Obsidian and assigns a column by dragging the file into a folder.
+
+  Authoring workflow: Obsidian vault pointed at the content directory. No
+  browser-based CMS, no OAuth. Publishing is a git push.
+
+  Conventions:
+  - NEVER put "Co-Authored-By: Claude" or "Generated with Claude Code" in commit
+    messages, PR bodies, or any committed content. All output is authored by Beck.
+  - Prefer the theme's existing utilities (getPostPaths, withBase, getSortedPosts)
+    over new parallel implementations, so base-path and locale handling stay correct.
+
+rules:
+  proposal:
+    - Keep it under 400 words
+    - Always include a "Non-goals" section
+  tasks:
+    - Every task must be verifiable by running a command or viewing a URL
+    - Include a final task that runs the production build
