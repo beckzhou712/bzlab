@@ -15,6 +15,18 @@ export function getSiteRoot(siteUrl: string): string {
 }
 
 /**
+ * Normalise a URL that points at a *file* rather than a directory.
+ *
+ * `getRelativeLocaleUrl` treats every path as a directory and appends a
+ * trailing slash, which turns `/bzlab/rss.xml` into `/bzlab/rss.xml/`. On a
+ * static host that path does not exist, so an advertised feed 404s for anyone
+ * who follows it. Feed endpoints must go through this.
+ */
+export function asFileUrl(pathname: string): string {
+  return pathname.replace(/\/+$/, "");
+}
+
+/**
  * Strip a locale prefix from a root-relative pathname.
  * e.g. with locale "en": "/en/posts/foo" → "/posts/foo", "/en" → "/"
  * Paths that don't start with the locale prefix are returned unchanged.

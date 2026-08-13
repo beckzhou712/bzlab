@@ -3,7 +3,7 @@ import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import { getRelativeLocaleUrl } from "astro:i18n";
 import { resolveDefaultOgImagePath } from "@/utils/resolveDefaultOgImagePath";
-import { getAssetPath } from "@/utils/withBase";
+import { asFileUrl, getAssetPath } from "@/utils/withBase";
 import config from "@/config";
 import "@/styles/global.css";
 
@@ -24,9 +24,8 @@ const {
 } = Astro.props;
 
 const socialImageURL = new URL(ogImage, Astro.site ?? Astro.url);
-const rssHref = getRelativeLocaleUrl(
-  Astro.currentLocale ?? config.site.lang,
-  "rss.xml"
+const rssHref = asFileUrl(
+  getRelativeLocaleUrl(Astro.currentLocale ?? config.site.lang, "rss.xml")
 );
 ---
 
