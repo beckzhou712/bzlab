@@ -1,2 +1,0 @@
-# bzlab
-research blog
