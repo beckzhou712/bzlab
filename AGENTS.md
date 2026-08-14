@@ -37,6 +37,13 @@ non-image is emitted verbatim and 404s. Same trap for post-to-post links.
 `src/content/attachments/` is the Obsidian vault's attachment folder, which is
 why it sits inside `src/content/` and not in `public/`.
 
+**`_` excludes files, not directories.** The loader pattern is
+`**/[^_]*.{md,mdx}` — `**` happily matches a `_drafts/` segment, so
+`_drafts/foo.md` publishes (at the site root, since `getPostPathSegments` strips
+`_` segments). Only an underscore on the *filename* keeps a file out. That is the
+one state where in-progress frontmatter can't break the deploy: `draft: true`
+still schema-validates and still fails the build.
+
 **Markdown tables are wrapped by `rehypeTableWrapper`.** The theme ships
 `ResponsiveTable.astro` but nothing references it — it's for MDX authors to reach
 for by hand. Plain `.md` tables would push the page sideways on mobile without

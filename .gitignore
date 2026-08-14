@@ -35,3 +35,9 @@ compose.override.yaml
 # obsidian per-machine UI state (settings in app.json are intentionally tracked)
 src/content/.obsidian/workspace*.json
 src/content/.obsidian/cache
+src/content/.obsidian/plugins/
+
+# private drafts — never published, never pushed (the repo is public).
+# Sibling of every collection base, so no loader can reach it either.
+src/content/_drafts/*
+!src/content/_drafts/README.md
