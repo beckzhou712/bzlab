@@ -5,7 +5,6 @@ pubDatetime: 2026-08-12T10:00:00-04:00
 description: "A read-through of AutoDDG: its background, two-stage architecture, and evaluation."
 tags:
   - vida
-  - meta
 ---
 
 AutoDDG (Automated Dataset Description Generation) is a framework that automatically generates natural-language descriptions for tabular data. It summarizes a dataset's metadata through a data-driven method and enriches the semantic information with a large language model, producing descriptions that are readable, comprehensive, and accurate. It is developed, maintained, and open-sourced by the VIDA Center team ([GitHub](https://github.com/VIDA-NYU/AutoDDG)), and published at SIGMOD 2026 (Proceedings of the ACM on Management of Data, PACMMOD) ([arXiv](https://arxiv.org/abs/2502.01050)).
