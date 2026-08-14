@@ -41,3 +41,6 @@ src/content/.obsidian/plugins/
 # Sibling of every collection base, so no loader can reach it either.
 src/content/_drafts/*
 !src/content/_drafts/README.md
+
+# stray note accidentally created by pasting a shell command into Obsidian
+src/content/Operation.md
