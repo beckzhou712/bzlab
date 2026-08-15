@@ -44,3 +44,8 @@ src/content/_drafts/*
 
 # stray note accidentally created by pasting a shell command into Obsidian
 src/content/Operation.md
+
+# private working notes kept in the vault, not part of the site.
+# Leading slash so the repo-root CLAUDE.md symlink stays tracked.
+/src/content/post审查.md
+/src/content/CLAUDE.md

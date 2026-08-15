@@ -33,7 +33,7 @@ AutoDDG and Auctus each depend on a fair number of third-party libraries, and th
 
 ### 5. Containerization and the LLM client
 
-I integrated AutoDDG into Auctus' containerized runtime and used Compose plus environment variables to manage dependencies and configuration in one place, so that the whole system can be deployed in a single command. AutoDDG also involves LLM calls, and it supports either a local model or an OpenAI-compatible client. I am obviously not flush enough to use my own compute and API credits, so I asked the lab for NYU's Portkey. It is compliant, billing is centralized, and it supports a range of models (not an exhaustive range, but more than enough) — and, more importantly, I do not have to spend my own money.
+I integrated AutoDDG into Auctus' containerized runtime and used Compose plus environment variables to manage dependencies and configuration in one place, so that the whole system can be deployed in a single command. AutoDDG also involves LLM calls, and it supports either a local model or an OpenAI-compatible client. More precisely, AutoDDG's constructor asks for a client to be passed in, and that client is the one constructed on the Auctus side. I am obviously not flush enough to use my own compute and API credits, so I asked the lab for NYU's Portkey. It is compliant, billing is centralized, and it supports a range of models (not an exhaustive range, but more than enough) — and, more importantly, I do not have to spend my own money.
 
 ### 6. Documentation and demo
 
