@@ -1,0 +1,4 @@
+run,setting,score,notes
+1,baseline,0.412,"first pass, nothing tuned"
+2,+reweighting,0.437,helped less than expected
+3,+reweighting+aug,0.401,regression — see post

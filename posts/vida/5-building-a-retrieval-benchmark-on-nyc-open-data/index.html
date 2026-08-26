@@ -1,0 +1,555 @@
+<!DOCTYPE html><html dir="ltr" lang="en" class="overflow-y-scroll scroll-smooth"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" type="image/svg+xml" href="/bzlab/favicon.svg"><link rel="icon" href="/bzlab/favicon.ico"><link rel="canonical" href="https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/"><meta name="generator" content="Astro v7.2.1"><!-- Font --><style>@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12";src:url("/bzlab/_astro/fonts/bb06e8282008d488.woff") format("woff"), url("/bzlab/_astro/fonts/59d48d9aa294fdec.ttf") format("truetype");font-display:swap;font-weight:400;font-style:italic;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12";src:url("/bzlab/_astro/fonts/2b96e9f6005bccf2.woff") format("woff"), url("/bzlab/_astro/fonts/6a76ddada40a0504.ttf") format("truetype");font-display:swap;font-weight:500;font-style:italic;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12";src:url("/bzlab/_astro/fonts/c74538ac7c76e999.woff") format("woff"), url("/bzlab/_astro/fonts/91b107b0f2502c95.ttf") format("truetype");font-display:swap;font-weight:600;font-style:italic;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12";src:url("/bzlab/_astro/fonts/073791fca9e895e8.woff") format("woff"), url("/bzlab/_astro/fonts/10b17565dec065c4.ttf") format("truetype");font-display:swap;font-weight:700;font-style:italic;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12";src:url("/bzlab/_astro/fonts/55485ba138da6cee.woff") format("woff"), url("/bzlab/_astro/fonts/abaab0e05378053f.ttf") format("truetype");font-display:swap;font-weight:400;font-style:normal;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12";src:url("/bzlab/_astro/fonts/6899bb860d1cc281.woff") format("woff"), url("/bzlab/_astro/fonts/0532ab8b96e98eaa.ttf") format("truetype");font-display:swap;font-weight:500;font-style:normal;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12";src:url("/bzlab/_astro/fonts/968bf143463f18b5.woff") format("woff"), url("/bzlab/_astro/fonts/222abde0e3b6484a.ttf") format("truetype");font-display:swap;font-weight:600;font-style:normal;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12";src:url("/bzlab/_astro/fonts/6673802cf68e715f.woff") format("woff"), url("/bzlab/_astro/fonts/34694bc4f184c224.ttf") format("truetype");font-display:swap;font-weight:700;font-style:normal;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman";src:local("Times New Roman");font-display:swap;font-weight:400;font-style:italic;size-adjust:104.8615%;ascent-override:97.7479%;descent-override:26.2251%;line-gap-override:0%;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman";src:local("Times New Roman");font-display:swap;font-weight:500;font-style:italic;size-adjust:104.8615%;ascent-override:97.7479%;descent-override:26.2251%;line-gap-override:0%;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman";src:local("Times New Roman");font-display:swap;font-weight:600;font-style:italic;size-adjust:104.8615%;ascent-override:97.7479%;descent-override:26.2251%;line-gap-override:0%;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman Bold";src:local("Times New Roman Bold");font-display:swap;font-weight:700;font-style:italic;size-adjust:98.4704%;ascent-override:104.0922%;descent-override:27.9272%;line-gap-override:0%;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman";src:local("Times New Roman");font-display:swap;font-weight:400;font-style:normal;size-adjust:104.8615%;ascent-override:97.7479%;descent-override:26.2251%;line-gap-override:0%;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman";src:local("Times New Roman");font-display:swap;font-weight:500;font-style:normal;size-adjust:104.8615%;ascent-override:97.7479%;descent-override:26.2251%;line-gap-override:0%;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman";src:local("Times New Roman");font-display:swap;font-weight:600;font-style:normal;size-adjust:104.8615%;ascent-override:97.7479%;descent-override:26.2251%;line-gap-override:0%;}@font-face{font-family:"IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman Bold";src:local("Times New Roman Bold");font-display:swap;font-weight:700;font-style:normal;size-adjust:98.4704%;ascent-override:104.0922%;descent-override:27.9272%;line-gap-override:0%;}:root{--font-body:"IBM Plex Serif-d243b43aaeba6b12","IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman","IBM Plex Serif-d243b43aaeba6b12 fallback: Times New Roman Bold",Georgia,serif;}</style><style>@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c";src:url("/bzlab/_astro/fonts/07c0ed95ca86cbe6.woff") format("woff"), url("/bzlab/_astro/fonts/b4f2f8be32ebd77d.ttf") format("truetype");font-display:swap;font-weight:400;font-style:italic;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c";src:url("/bzlab/_astro/fonts/7127956665384ec7.woff") format("woff"), url("/bzlab/_astro/fonts/af501b9883e46e3e.ttf") format("truetype");font-display:swap;font-weight:500;font-style:italic;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c";src:url("/bzlab/_astro/fonts/d254fcaf6f482bf7.woff") format("woff"), url("/bzlab/_astro/fonts/194158777bb30f04.ttf") format("truetype");font-display:swap;font-weight:600;font-style:italic;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c";src:url("/bzlab/_astro/fonts/d105461de71f8608.woff") format("woff"), url("/bzlab/_astro/fonts/3ee0762e1085f111.ttf") format("truetype");font-display:swap;font-weight:700;font-style:italic;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c";src:url("/bzlab/_astro/fonts/4f3f0c95fa34b303.woff") format("woff"), url("/bzlab/_astro/fonts/aab61ef1482e64dc.ttf") format("truetype");font-display:swap;font-weight:400;font-style:normal;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c";src:url("/bzlab/_astro/fonts/9b17a618a1313d91.woff") format("woff"), url("/bzlab/_astro/fonts/62e32ac08d5a46a9.ttf") format("truetype");font-display:swap;font-weight:500;font-style:normal;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c";src:url("/bzlab/_astro/fonts/5dd7566a4f275feb.woff") format("woff"), url("/bzlab/_astro/fonts/df786a3959676219.ttf") format("truetype");font-display:swap;font-weight:600;font-style:normal;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c";src:url("/bzlab/_astro/fonts/35626d9c3073afdf.woff") format("woff"), url("/bzlab/_astro/fonts/78262f3769cc515f.ttf") format("truetype");font-display:swap;font-weight:700;font-style:normal;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c fallback: Courier New";src:local("Courier New");font-display:swap;font-weight:400;font-style:italic;size-adjust:99.9837%;ascent-override:102.5167%;descent-override:27.5045%;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c fallback: Courier New";src:local("Courier New");font-display:swap;font-weight:500;font-style:italic;size-adjust:99.9837%;ascent-override:102.5167%;descent-override:27.5045%;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c fallback: Courier New";src:local("Courier New");font-display:swap;font-weight:600;font-style:italic;size-adjust:99.9837%;ascent-override:102.5167%;descent-override:27.5045%;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c fallback: Courier New";src:local("Courier New");font-display:swap;font-weight:700;font-style:italic;size-adjust:99.9837%;ascent-override:102.5167%;descent-override:27.5045%;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c fallback: Courier New";src:local("Courier New");font-display:swap;font-weight:400;font-style:normal;size-adjust:99.9837%;ascent-override:102.5167%;descent-override:27.5045%;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c fallback: Courier New";src:local("Courier New");font-display:swap;font-weight:500;font-style:normal;size-adjust:99.9837%;ascent-override:102.5167%;descent-override:27.5045%;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c fallback: Courier New";src:local("Courier New");font-display:swap;font-weight:600;font-style:normal;size-adjust:99.9837%;ascent-override:102.5167%;descent-override:27.5045%;}@font-face{font-family:"IBM Plex Mono-afc326a00f8b356c fallback: Courier New";src:local("Courier New");font-display:swap;font-weight:700;font-style:normal;size-adjust:99.9837%;ascent-override:102.5167%;descent-override:27.5045%;}:root{--font-code:"IBM Plex Mono-afc326a00f8b356c","IBM Plex Mono-afc326a00f8b356c fallback: Courier New",monospace;}</style><!-- Primary meta --><title>Building a Retrieval Benchmark on NYC Open Data | bzlab</title><meta name="title" content="Building a Retrieval Benchmark on NYC Open Data | bzlab"><meta name="description" content="A focused review of ~36 papers on how to scientifically construct queries and graded relevance judgments (qrels) for a dataset-retrieval benchmark on NYC Open Data."><meta name="author" content="Beck Zhou"><link rel="sitemap" href="/bzlab/sitemap-index.xml"><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:site_name" content="bzlab"><meta property="og:title" content="Building a Retrieval Benchmark on NYC Open Data | bzlab"><meta property="og:description" content="A focused review of ~36 papers on how to scientifically construct queries and graded relevance judgments (qrels) for a dataset-retrieval benchmark on NYC Open Data."><meta property="og:url" content="https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/"><meta property="og:image" content="https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/index.png"><!-- Twitter / X --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/"><meta property="twitter:title" content="Building a Retrieval Benchmark on NYC Open Data | bzlab"><meta property="twitter:description" content="A focused review of ~36 papers on how to scientifically construct queries and graded relevance judgments (qrels) for a dataset-retrieval benchmark on NYC Open Data."><meta property="twitter:image" content="https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/index.png"><!-- RSS autodiscovery --><link rel="alternate" type="application/rss+xml" title="bzlab" href="https://beckzhou712.github.io/bzlab/rss.xml"><!-- Filled at runtime by theme.ts to match the current background colour --><meta name="theme-color" content=""><!-- Extra head content injected by child layouts (e.g. JSON-LD, article meta) --><meta property="og:type" content="article"><meta property="article:published_time" content="2026-08-23T14:00:00.000Z"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Building a Retrieval Benchmark on NYC Open Data | bzlab","image":"https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/index.png","datePublished":"2026-08-23T14:00:00.000Z","author":[{"@type":"Person","name":"Beck Zhou","url":"https://github.com/beckzhou712"}]}</script><!--
+      Inline FOUC-prevention script: sets data-theme on <html> before
+      the browser paints. Runs synchronously, no defer/async.
+    --><script>
+      (function () {
+        const stored = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        const theme = stored ?? (prefersDark ? "dark" : "light");
+        const root = document.firstElementChild;
+        root?.setAttribute("data-theme", theme);
+        root?.classList.toggle("dark", theme === "dark");
+        // Expose value so theme.ts can skip re-detection.
+        window.__theme = { value: theme };
+      })();
+    </script><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/bzlab/_astro/ClientRouter.astro_astro_type_script_index_0_lang.Sx5bM3k1.js"></script><link rel="stylesheet" href="/bzlab/_astro/Footer.vdqkHivr.css"><style>@keyframes astroFadeInOut{0%{opacity:1}to{opacity:0}}@keyframes astroFadeIn{0%{opacity:0;mix-blend-mode:plus-lighter}to{opacity:1;mix-blend-mode:plus-lighter}}@keyframes astroFadeOut{0%{opacity:1;mix-blend-mode:plus-lighter}to{opacity:0;mix-blend-mode:plus-lighter}}@keyframes astroSlideFromRight{0%{transform:translate(100%)}}@keyframes astroSlideFromLeft{0%{transform:translate(-100%)}}@keyframes astroSlideToRight{to{transform:translate(100%)}}@keyframes astroSlideToLeft{to{transform:translate(-100%)}}@media (prefers-reduced-motion){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*),[data-astro-transition-scope]{animation:none!important}}
+</style><style>[data-astro-transition-scope="astro-bztu2lml-1"] { view-transition-name: vida; }@layer astro { ::view-transition-old(vida) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(vida) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(vida) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(vida) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-bztu2lml-1"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-bztu2lml-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-bztu2lml-1"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-bztu2lml-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-bztu2lml-1"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-bztu2lml-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-bztu2lml-1"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-bztu2lml-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style></head><body class="bg-background font-app text-foreground selection:bg-accent/75 selection:text-accent-foreground flex min-h-svh flex-col"><a id="skip-to-content" href="#main-content" class="bg-background text-accent absolute inset-s-16 -top-full z-50 px-3 py-2 backdrop-blur-lg transition-all focus:top-4">Skip to content</a><header class="app-layout flex flex-col items-center justify-between sm:flex-row"><div class="border-border bg-background relative flex w-full items-baseline justify-between border-b py-4 sm:items-center sm:py-6"><a href="/bzlab/" class="absolute py-1 text-xl leading-8 font-semibold whitespace-nowrap sm:static sm:my-auto sm:text-2xl sm:leading-none">bzlab</a><nav id="nav-menu" class="flex w-full flex-col items-center sm:ms-2 sm:flex-row sm:justify-end sm:space-x-4 sm:py-0"><button id="menu-btn" class="focus-outline self-end p-2 sm:hidden" aria-label="Open menu" aria-expanded="false" aria-controls="menu-items" data-label-open="Open menu" data-label-close="Close menu"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="hidden" viewBox="0 0 24 24" id="close-icon"><path stroke="none" d="M0 0h24v24H0z" /><path d="M18 6 6 18M6 6l12 12" /></svg><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-deep" viewBox="0 0 24 24" id="menu-icon"><path stroke="none" d="M0 0h24v24H0z" /><path d="M4 6h16M7 12h13M10 18h10" /></svg></button><ul id="menu-items" class="[&amp;&gt;li&gt;a]:hover:text-accent mt-4 hidden w-44 grid-cols-2 place-content-center gap-2 sm:mt-0 sm:flex sm:w-auto sm:gap-x-5 sm:gap-y-0 sm:[&amp;&gt;li]:h-8 [&amp;&gt;li&gt;a]:block [&amp;&gt;li&gt;a]:px-4 [&amp;&gt;li&gt;a]:py-3 [&amp;&gt;li&gt;a]:text-center [&amp;&gt;li&gt;a]:font-medium sm:[&amp;&gt;li&gt;a]:px-2 sm:[&amp;&gt;li&gt;a]:py-1"><li class="col-span-2"><a href="/bzlab/posts/" class="active-nav">Posts</a></li><li class="col-span-2"><a href="/bzlab/columns/">Columns</a></li><li class="col-span-2"><a href="/bzlab/tags/">Tags</a></li><li class="col-span-2"><a href="/bzlab/about/">About</a></li><li class="col-span-2"><a href="/bzlab/archives/" title="Archives" aria-label="Archives" class="group inline-flex items-center gap-1 hover:text-accent focus-outline flex size-full justify-center p-3 sm:relative sm:size-8 sm:p-0"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="hidden sm:absolute sm:top-1/2 sm:left-1/2 sm:block sm:size-6 sm:-translate-x-1/2 sm:-translate-y-1/2" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4" /></svg><span class="sm:sr-only">Archives</span></a></li><li class="col-span-1 flex items-center justify-center"><a href="/bzlab/search/" title="Search" aria-label="Search" class="group inline-flex items-center gap-1 hover:text-accent focus-outline relative size-8"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="absolute top-1/2 left-1/2 size-6 -translate-x-1/2 -translate-y-1/2" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M3 10a7 7 0 1 0 14 0 7 7 0 1 0-14 0M21 21l-6-6" /></svg><span class="sr-only">Search</span></a></li><li class="col-span-1 flex items-center justify-center"><button id="theme-btn" class="focus-outline hover:[&amp;&gt;svg]:stroke-accent relative size-12 p-4 sm:size-8" title="Toggle theme" aria-label="auto" aria-live="polite"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="absolute top-[50%] left-[50%] translate-[-50%] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M12 3h.393a7.5 7.5 0 0 0 7.92 12.446A9 9 0 1 1 12 2.992z" /></svg><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="absolute top-[50%] left-[50%] translate-[-50%] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M14.828 14.828a4 4 0 1 0-5.656-5.656 4 4 0 0 0 5.656 5.656M6.343 17.657l-1.414 1.414M6.343 6.343 4.929 4.929M17.657 6.343l1.414-1.414M17.657 17.657l1.414 1.414M4 12H2M12 4V2M20 12h2M12 20v2" /></svg></button></li></ul></nav></div></header><script type="module">function e(){let e=document.querySelector(`#menu-btn`),t=document.querySelector(`#menu-items`),n=document.querySelector(`#menu-icon`),r=document.querySelector(`#close-icon`);if(!e||!t||!n||!r)return;let i=e.dataset.labelOpen??`Open menu`,a=e.dataset.labelClose??`Close menu`;e.addEventListener(`click`,()=>{let o=e.getAttribute(`aria-expanded`)===`true`;e.setAttribute(`aria-expanded`,o?`false`:`true`),e.setAttribute(`aria-label`,o?i:a),t.classList.toggle(`hidden`),t.classList.toggle(`grid`),n.classList.toggle(`hidden`),r.classList.toggle(`hidden`)})}function t(){let e=document.getElementById(`skip-to-content`);e&&e.addEventListener(`click`,e=>{if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0)return;e.preventDefault();let t=document.getElementById(`main-content`);t&&(t.setAttribute(`tabindex`,`-1`),t.addEventListener(`blur`,()=>t.removeAttribute(`tabindex`),{once:!0}),t.focus(),t.scrollIntoView({behavior:`smooth`}))})}e(),document.addEventListener(`astro:after-swap`,e),t(),document.addEventListener(`astro:after-swap`,t);</script><div class="app-layout flex items-center justify-start"><a id="back-button" href="/bzlab/" class="group inline-flex items-center gap-1 hover:text-accent focus-outline hover:text-foreground/75 -ms-2 mt-8 mb-2"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block size-6 rtl:rotate-180" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="m15 6-6 6 6 6" /></svg><span>Go back</span></a></div><script type="module">function e(){let e=document.querySelector(`#back-button`),t=sessionStorage.getItem(`backUrl`);t&&e&&(e.href=t)}document.addEventListener(`astro:page-load`,e),e();</script><main id="main-content" class="app-layout" data-pagefind-body><h1 style="view-transition-name:vida5-building-a-retrieval-benchmark-on-nyc-open-data" class="text-accent inline-block text-2xl font-bold sm:text-3xl">Building a Retrieval Benchmark on NYC Open Data</h1><div class="my-2 flex items-center gap-2"><div class="text-muted-foreground flex items-center gap-x-2"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block size-6 min-w-5.5" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM16 3v4M8 3v4M4 11h16M7 14h.013M10.01 14h.005M13.01 14h.005M16.015 14h.005M13.015 17h.005M7.01 17h.005M10.01 17h.005" /></svg><time class="text-sm sm:text-base" datetime="2026-08-23T14:00:00.000Z">23 Aug, 2026</time></div><span aria-hidden="true" class="text-muted-foreground max-sm:hidden">|</span><a href="https://github.com/beckzhou712/bzlab/edit/main/src/content/posts/vida/5 Building a Retrieval Benchmark on NYC Open Data.md" target="_blank" rel="noopener noreferrer" class="hover:text-accent text-muted-foreground flex justify-baseline gap-1.5 max-sm:hidden"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M7 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97L9 12v3h3zM16 5l3 3" /></svg><span>Edit page</span></a></div><article id="article" class="mt-8 w-full app-prose max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"><blockquote><p><strong>Three-sentence overview.</strong> Given a fixed pool of datasets (here, NYC Open Data), the hard part of building a benchmark is never the pool itself but the other two ingredients — the <strong>queries</strong> and the <strong>graded relevance judgments (qrels)</strong> — and there are two mature, complementary technical routes for producing them: the twenty-year TREC/NTCIR tradition of <strong>human-written queries plus human graded judgments</strong> (with a whole methodology for computing NDCG under incomplete judgment pools), and the post-2022 surge of <strong>using large language models to generate queries and to act as relevance assessors that produce synthetic qrels</strong>. The current consensus is that LLMs generate usable queries and, for <em>comparing systems’ relative ranking</em>, produce qrels that agree closely with human labels — but they <strong>cannot yet fully replace</strong> human assessment, so the safest deployable design is a hybrid pipeline of “large-scale LLM generation plus stratified human verification.”</p></blockquote>
+<p>This is a <strong>focused review</strong> (~36 core papers) serving one engineering goal: <strong>construct an NDCG-evaluable dataset-retrieval benchmark on NYC Open Data</strong>. The first of the three benchmark ingredients — the dataset pool comes from NYC Open Data — so this review spends all of its length on the other two: <strong>how to produce, scientifically and reproducibly, the queries and the graded qrels.</strong></p>
+<h2 id="landscape-how-the-two-routes-evolved">Landscape: how the two routes evolved</h2>
+<p>Dataset retrieval (dataset search) became a recognized IR sub-task surprisingly late, and its “test collection” consciousness later still. As dataset-retrieval methods moved from metadata-based to content-based, the field long lacked a dedicated test collection — <a href="https://doi.org/10.1145/3477495.3531729">Lin et al. 2022 (ACORDAR)</a> built the first test collection for ad hoc content-based dataset retrieval, where both the queries and the relevance judgments were annotated by <strong>human experts</strong> using a dashboard purpose-built for browsing a dataset’s metadata <em>and</em> its data content before scoring. Earlier, <a href="https://doi.org/10.1145/3404835.3463261">Kato et al. 2021 (NTCIR Data Search)</a> had built a collection from the US Data.gov and Japanese e-Stat government open-data portals, with human-written English/Japanese topics and relevance judgments over the pool returned by 74 retrieval systems — the <strong>closest precedent</strong> to the NYC Open Data setting, because its pool is likewise a government open-data portal.</p>
+<p>The figure below groups this review’s 36 papers by <em>which technical angle they use to construct queries and qrels</em>, with year on the x-axis and citations (log) on the y-axis. Two time strata are visible: <strong>2006–2018 is the methodological foundation era</strong> (evaluation metrics under incomplete judgments, query-log analysis), and <strong>post-2022 is the LLM ignition era</strong> (synthetic queries and synthetic judgments taking off together).</p>
+<p><img alt="Figure 1: Route evolution — the two survey routes charted by year (x-axis) and citations, log scale (y-axis): 2006–2018 methodological foundations (evaluation metrics under incomplete judgments, query-log analysis) feeding the post-2022 LLM-driven surge in synthetic queries and judgments." loading="lazy" decoding="async" width="2265" height="1457" src="/bzlab/_astro/fig1_route_evolution.hx8YaoqW_i5fut.webp" srcset=""></p>
+<p>Of the five routes, R1 (dataset-retrieval test collections themselves) and R2 (human-query-and-judgment methodology) form the skeleton of <strong>Route One</strong>; R3 (LLM synthetic queries) and R4 (LLM relevance judging) form <strong>Route Two</strong>; R5 (dataset-retrieval methods) is supporting upstream/downstream work. Below, I first explain <em>why qrels are the hardest link</em>, then walk each route with operational detail.</p>
+<h2 id="why-qrels-are-the-most-expensive-hardest-link-in-a-benchmark">Why qrels are the most expensive, hardest link in a benchmark</h2>
+<p>Queries are only “what a user would type” — they can come from logs, human authors, or an LLM, at manageable cost. What is genuinely expensive is the <strong>qrels: for each query, judging which datasets in the pool are relevant and how relevant (a graded score)</strong>. Without qrels there is no way to compare a system’s ranking against the correct answer, and no way to compute NDCG. And qrels are costly in two layers. First, <strong>judgment volume</strong> — in principle every query requires judging the entire pool, and NYC Open Data has thousands of datasets, so exhaustive judgment is infeasible. Second, <strong>judgment difficulty</strong> — deciding whether a dataset satisfies a query often requires reading the title, description, field schema, <em>and</em> data samples together, which is harder than judging a document. IR developed the <strong>pooling + robust-metrics-under-incomplete-judgments</strong> methodology for the first layer (Route One’s R2), and recently pins hopes on LLMs for the second (Route Two’s R4). Understanding both layers is a prerequisite for designing the NYC benchmark.</p>
+<h2 id="route-one-human-authored-queries-and-human-graded-judgments">Route One: human-authored queries and human graded judgments</h2>
+<p>The core idea of this route is to <strong>let real people produce the queries and let trained assessors produce the graded qrels</strong>, controlling cost and bias with the TREC/NTCIR evaluation methodology accumulated over decades. Its credibility is the highest; the cost is human labor. For the specific setting of government open data, there are already reusable resources and protocols.</p>
+<h3 id="ready-made-human-annotated-collections-reuse-or-adapt-directly">Ready-made human-annotated collections (reuse or adapt directly)</h3>
+<p>The most valuable point for you: <strong>test collections that are pool-isomorphic to yours and already carry human queries and human graded judgments exist</strong>, so you may not need to annotate from scratch. <a href="https://doi.org/10.1145/3404835.3463261">Kato et al. 2021’s NTCIR Data Search collection</a> is built directly on US Data.gov and Japanese e-Stat, with human-written topics and graded relevance judgments pooled over 74 systems — the most direct template for stitching together “government open data + human queries + human qrels.” Its topic-writing guidelines, grade-level definitions, and pooling depth can be transplanted to NYC Open Data. The dataset-retrieval test-collection line was then carried on by <a href="https://doi.org/10.1145/3477495.3531729">Lin et al. 2022 (ACORDAR)</a>: as the first content-based dataset-retrieval test collection, its key contribution is the <strong>expert annotation dashboard</strong> that lets assessors browse metadata <em>and</em> data content before scoring — the lesson that “assessors need to see the data itself, not just title and description” is critical for the NYC setting.</p>
+<p>ACORDAR’s follow-ups directly expose and repair two systematic flaws of human test collections, and make a useful “pitfall checklist” for your annotation design. <a href="https://doi.org/10.1145/3626772.3657866">Chen et al. 2024 (ACORDAR 2.0)</a> points out the <strong>lexical bias in pooling</strong>: building the judgment pool from keyword retrieval alone misses datasets that are semantically relevant but lexically different, biasing qrels toward lexical-match systems; their fix introduces dense retrieval models to enlarge the pool. This maps straight onto the NYC setting — if you select “which datasets to send for human judgment” using only BM25-style lexical retrieval, the final benchmark will <em>underrate</em> semantic retrievers. More recently, <a href="https://doi.org/10.48550/arxiv.2510.17228">Shi et al. 2025 (DSEBench)</a> generalizes the task to “query + example dataset” joint retrieval and asks for the relevant <em>fields</em> to be identified, indicating that relevance judgment in dataset search is refining from “whole-dataset relevant/not” toward “field-level relevance.” Separately, <a href="https://doi.org/10.18653/v1/2023.acl-long.573">Viswanathan et al. 2023 (DataFinder)</a> recommends datasets from a natural-language description of a research need; its “turn a one-sentence need into retrieval constraints” idea is a query source that sits between fully manual and fully automatic.</p>
+<h3 id="anchoring-what-users-actually-type-with-real-query-logs">Anchoring “what users actually type” with real query logs</h3>
+<p>The biggest risk of human-written queries is <strong>drifting away from real user behavior</strong> — queries a researcher invents at a desk may look nothing like what citizens actually type into an open-data portal. <a href="https://doi.org/10.1016/j.websem.2018.11.003">Kacprzak et al. 2018</a> analyzed real portal search logs and data requests and systematically characterized how “dataset search queries” differ from ordinary web-search queries (shorter, skewed toward place/agency/topic terms, often carrying temporal and geographic qualifiers) — precisely the empirical basis for queries like “NYC taxi data.” For NYC Open Data, the most scientific query source is <strong>the portal’s own search or API-access logs</strong>, if obtainable; if not, Kacprzak’s query-feature distribution can serve as a template and quota constraint for human-written queries (e.g., allocate query types by the real proportions of “topic term / agency name / geographic qualifier / temporal qualifier”).</p>
+<h3 id="computing-reliable-ndcg-when-judgments-are-incomplete">Computing reliable NDCG when judgments are incomplete</h3>
+<p>The real methodological core of Route One is a body of work that <strong>keeps evaluation reliable when exhaustive judgment is impossible</strong> — a hard requirement for a pool of thousands of NYC datasets. <a href="https://doi.org/10.1145/1148170.1148219">Carterette et al. 2006 (minimal test collections)</a> shows that by actively selecting only the few documents that best discriminate between systems, one obtains a system ranking almost identical to full judgment; <a href="https://doi.org/10.1145/1183614.1183633">Yilmaz and Aslam 2006 (statAP)</a> gives statistical methods to estimate average precision under incomplete and sampled judgments; <a href="https://doi.org/10.1007/s10791-008-9059-7">Sakai 2008</a> systematically compares metrics such as bpref designed for incomplete judgments, showing how their robustness differs as pools grow shallow. Together these answer a question you will certainly hit: <strong>the NYC benchmark cannot judge every dataset for every query — so how many to judge, how, and with what metric, so that NDCG rankings stay trustworthy?</strong> The standard practice is <strong>pooling</strong>: take the union of each of several different retrieval systems’ top-k as the judgment pool, judge (grade) only that pool by hand, and treat everything outside it as non-relevant. ACORDAR 2.0’s lesson: <strong>mix semantic/dense retrievers into the pool</strong>, or it will carry a lexical bias.</p>
+<h2 id="route-two-a-generating-queries-with-llms">Route Two-A: generating queries with LLMs</h2>
+<p>This route’s core idea is <strong>to have an LLM read a document (or dataset) and generate the queries for which that document would be relevant</strong> — which simultaneously produces a (query, relevant-item) pair, i.e., a weak positive qrel. It originated in the neural-retrieval training-data problem, but the same machinery transfers directly to benchmark construction.</p>
+<p>The foundational technique is <strong>document-to-query generation</strong>. <a href="https://doi.org/10.48550/arxiv.2301.03266">Nogueira et al.’s doc2query</a> line (here via the “doc2query—” analysis) trains a model to predict the queries a document answers; the retrieval-benchmark descendants make this few-shot and LLM-driven. <a href="https://doi.org/10.1145/3477495.3531863">Bonifacio et al. 2022 (InPars)</a> uses the few-shot ability of large LMs to generate, from a handful of examples, synthetic (query, document) training pairs for a target domain; <a href="https://doi.org/10.48550/arxiv.2209.11755">Dai et al. 2022 (Promptagator)</a> makes the case sharpest — <strong>“few-shot dense retrieval from 8 examples”</strong>: each retrieval task comes with a short description and a few examples, and the LLM amplifies them into a large synthetic training set tailored to that task’s search intent. For your purpose, the transferable recipe is: <strong>write ~8 seed (dataset → plausible query) examples in the NYC style, then have the LLM mass-generate queries conditioned on each dataset’s metadata and a data sample.</strong> <a href="https://doi.org/10.18653/v1/2022.naacl-main.168">Wang et al. 2022 (GPL)</a> adds the crucial refinement of <strong>generative pseudo-labeling</strong>: it doesn’t trust the generated query blindly, but re-scores each (query, document) pair with a cross-encoder to attach a soft relevance label — a design that directly anticipates graded (rather than binary) qrels.</p>
+<p>Two papers speak directly to using generated queries <em>for test collections</em> rather than for training. <a href="https://doi.org/10.1145/3539618.3591960">Alaofi et al. 2023</a> explores generating queries and query <em>variants</em> from a description of an information need and quantifies how similar LLM-generated queries are to human ones, finding real promise in generating variants — while cautioning that <strong>LLMs do not fully capture the diversity of human-generated queries</strong>, so relying on them alone narrows the query space. <a href="https://doi.org/10.1145/3626772.3661355">Sannigrahi et al. 2024</a> applies LLM synthetic query generation in a virtual-assistant setting, useful as a template for controlling query style and register. A related zero-shot idea, <a href="https://doi.org/10.18653/v1/2023.acl-long.99">Gao et al. 2023 (HyDE)</a>, generates a <em>hypothetical document</em> from a query to improve retrieval without relevance labels — the inverse direction, but it reinforces the point that LLMs can bridge queries and documents in both directions. The practical warning across this route: <strong>generated queries are systematically “cleaner” and less diverse than human queries</strong> — mitigate by seeding with real query-log statistics (Kacprzak) and by generating multiple variants per intent.</p>
+<h2 id="route-two-b-llm-relevance-judging-synthetic-qrels">Route Two-B: LLM relevance judging (synthetic qrels)</h2>
+<p>This is the route that most directly attacks your hardest link — <strong>producing graded qrels at scale</strong> — and it is the most active area in the review (11 papers, 2023–2025). The core idea: <strong>prompt an LLM with a (query, dataset) pair and have it output a graded relevance label</strong>, replacing or augmenting human assessors.</p>
+<p>The agenda-setting paper is <a href="https://doi.org/10.1145/3578337.3605136">Faggioli et al. 2023 (Perspectives on LLMs for Relevance Judgment)</a>, which lays out a <strong>human–machine collaboration spectrum</strong> — from fully manual, through LLM-assisted, to fully automated judgments — and argues the right question is not “human or machine” but “how much to rely on the machine.” This spectrum is the correct mental model for designing NYC qrels. The empirical case that LLMs <em>can</em> judge well came from <a href="https://doi.org/10.1145/3626772.3657707">Thomas et al. 2024 (LLMs Accurately Predict Searcher Preferences)</a> at Microsoft Bing, which calibrated an LLM and prompt against careful feedback from real searchers and showed the LLM’s labels can reach human quality. Because that study shipped no reusable software, <a href="https://doi.org/10.48550/arxiv.2406.06519">Upadhyay et al. 2024 (UMBRELA)</a> produced an <strong>open-source reproduction of the Bing relevance assessor</strong> — a concrete, runnable tool you could point at (query, NYC-dataset) pairs. On the query side of test-collection generation, <a href="https://doi.org/10.1145/3626772.3657942">Rahmani et al. 2024 (Synthetic Test Collections for Retrieval Evaluation)</a> shows LLMs can generate <em>both</em> the queries and the judgments for a usable test collection, i.e., a fully synthetic benchmark, and studies how faithful the resulting system rankings are.</p>
+<p>Several papers address the practical mechanics you will need. <a href="https://doi.org/10.1145/3539618.3592032">MacAvaney and Soldaini 2023 (One-Shot Labeling)</a> tackles the “holes” problem — unjudged documents in an offline collection — by using an LLM to fill missing judgments, explicitly in the common setting where only one relevant document per query is known; this is exactly how you would <em>extend</em> a small human-judged seed to full-pool coverage. <a href="https://doi.org/10.48550/arxiv.2412.13268">Rahmani et al. 2024 (JudgeBlender)</a> shows that ensembling judgments from multiple LLMs, rather than relying on a single GPT-4, reduces intra-model bias (the tendency to favor systems built on the same model) and improves reliability. <a href="https://doi.org/10.1145/3731120.3744588">Dietz et al. 2025 (Principles and Guidelines for LLM Judges)</a> and <a href="https://doi.org/10.1145/3726302.3730305">Arabzadeh et al. 2025 (Benchmarking LLM-based Relevance Judgment Methods)</a> consolidate best practices and compare judging methods head-to-head — read these before finalizing a prompt.</p>
+<p>The honest counterweight — and the reason no serious benchmark today is <em>purely</em> LLM-judged — comes from three papers you should read as a set. <a href="https://doi.org/10.48550/arxiv.2411.08275">Upadhyay et al. 2024 (Large-Scale Study, TREC 2024 RAG Track)</a> deployed manual and three LLM-assisted judging approaches <em>in situ</em> and correlated them, finding that LLM judgments preserve system <em>rankings</em> well but diverge from humans in absolute terms. <a href="https://doi.org/10.48550/arxiv.2412.17156">Clarke and Dietz 2024 (LLM assessment still can’t replace human)</a> directly rebuts the strong claim that UMBRELA-style judgments can <em>fully</em> replace humans in TREC-style evaluation, laying out practical and theoretical limitations. And <a href="https://doi.org/10.1145/3673791.3698431">Alaofi et al. 2024 (LLMs can be Fooled into Labelling a Document as Relevant)</a> shows LLM judges are manipulable — keyword-stuffed or adversarial content (“best café near me”) can extract a spurious “relevant” label — a real vulnerability if any system under evaluation could game the judge. The synthesis: <strong>use LLMs for scale and for filling holes, keep a human-judged core for calibration and audit, ensemble judges to cut bias, and never let a single LLM judge be the sole ground truth.</strong></p>
+<h2 id="supporting-route-dataset-retrieval-methods-and-representation">Supporting route: dataset-retrieval methods and representation</h2>
+<p>These works are not about query/qrels construction per se, but they shape <em>what your benchmark must be able to evaluate</em> and <em>how datasets should be represented to a judge</em>. <a href="https://doi.org/10.1145/3308558.3313685">Brickley et al. 2019 (Google Dataset Search)</a> is the most-cited work in this review and defines the production reality of open-web dataset search — metadata-driven, schema.org-based — which is the baseline any NYC benchmark should include as a lexical/metadata retriever. <a href="https://doi.org/10.1145/3626521">Paton et al. 2023 (Dataset Discovery and Exploration: A Survey)</a> is the best single map of the whole field. On representation, <a href="https://doi.org/10.1145/3178876.3186067">Zhang and Balog 2018 (Ad Hoc Table Retrieval)</a> established semantic-similarity methods for retrieving tabular data — directly relevant since most NYC Open Data assets are tables. Recent LLM-era work matters for the <em>judge’s</em> input: <a href="https://doi.org/10.1145/3626772.3657837">Chen et al. 2024 (Compact Data Snippets)</a> shows how to summarize a large dataset into a snippet an assessor (human or LLM) can actually read; <a href="https://doi.org/10.1145/3786626">Zhang et al. 2026 (AutoDDG)</a> auto-generates dataset descriptions with LLMs, useful when NYC metadata is sparse; <a href="https://doi.org/10.1016/j.knosys.2024.111740">Silva et al. 2024</a> improves dense retrieval for dataset search with LLM-augmented data; and <a href="https://doi.org/10.14778/3659437.3659461">Kayali et al. 2024 (Chorus)</a> applies foundation models to unified data discovery. The takeaway for benchmark design: <strong>decide up front how a dataset is presented to the judge</strong> (metadata only? metadata + schema? + a data-sample snippet?), because that choice — not just the ranking model — determines the ceiling of achievable relevance-judgment quality. ACORDAR and Compact Data Snippets both argue for giving the judge the <em>data</em>, not only the description.</p>
+<h2 id="open-problems-and-what-to-track">Open problems and what to track</h2>
+<p>Several questions remain genuinely unresolved and are worth watching as you build. <strong>Field-level relevance</strong>: DSEBench’s move from whole-dataset to field-level judgment suggests future qrels may need to mark <em>which columns</em> satisfy a query — more informative but far costlier to judge. <strong>How to present a dataset to a judge</strong>: there is no settled standard for how much data content (vs. metadata) a judge should see, yet ACORDAR shows this materially changes judgments. <strong>LLM-judge robustness and bias</strong>: the manipulability (Alaofi 2024) and intra-model favoritism (JudgeBlender) problems are actively researched but unsolved; ensembling helps but does not eliminate them. <strong>The human-replaceability boundary</strong>: whether — and for which query types — LLM judges can safely stand in for humans is exactly the open debate between the “accurately predict preferences” and “can’t replace human” camps. For NYC specifically, the biggest practical unknown is <strong>query provenance</strong>: whether you can obtain real portal logs will determine how much you must lean on synthetic query generation.</p>
+<p>The figure below ranks the review’s works by citation impact and shows coverage per route, as a guide to the list below.</p>
+<p><img alt="Figure 2: (a) Coverage by route, hatched bars marking 2024+ frontier work; (b) the review&#39;s most-cited works, colored by route." loading="lazy" decoding="async" width="2820" height="1490" src="/bzlab/_astro/fig2_impact._PF58uzP_19nLkb.webp" srcset=""></p>
+<h2 id="full-reference-list-36-papers-grouped-by-route">Full reference list (36 papers, grouped by route)</h2>
+<p><code>★</code> marks 2024+ frontier work. Citation counts are OpenAlex snapshots. Full metadata in <code>literature.csv</code>.</p>
+<p><strong>R1 · Dataset-retrieval test collections</strong></p>
+<ul>
+<li>Makoto P. Kato et al. (2021). <em>A Test Collection for Ad-hoc Dataset Retrieval</em>. nan. 22 cites. <a href="https://doi.org/10.1145/3404835.3463261">10.1145/3404835.3463261</a></li>
+<li>Nandan Thakur et al. (2021). <em>BEIR: A Heterogenous Benchmark for Zero-shot Evaluation of Information Retrieval Models</em>. arXiv (Cornell University). 25 cites. <a href="https://doi.org/10.48550/arxiv.2104.08663">10.48550/arxiv.2104.08663</a></li>
+<li>Tengteng Lin et al. (2022). <em>ACORDAR</em>. Proceedings of the 45th International ACM SIGIR Conference on Research and Development in Information Retrieval. 10 cites. <a href="https://doi.org/10.1145/3477495.3531729">10.1145/3477495.3531729</a></li>
+<li>Vijay Viswanathan et al. (2023). <em>DataFinder: Scientific Dataset Recommendation from Natural Language Descriptions</em>. Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 10 cites. <a href="https://doi.org/10.18653/v1/2023.acl-long.573">10.18653/v1/2023.acl-long.573</a></li>
+<li>★ Qiaosheng Chen et al. (2024). <em>ACORDAR 2.0: A Test Collection for Ad Hoc Dataset Retrieval with Densely Pooled Datasets and Question-Style Queries</em>. Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval. 3 cites. <a href="https://doi.org/10.1145/3626772.3657866">10.1145/3626772.3657866</a></li>
+<li>★ Weiwei Sun et al. (2024). <em>MAIR: A Massive Benchmark for Evaluating Instructed Retrieval</em>. arXiv (Cornell University). 1 cites. <a href="https://doi.org/10.48550/arxiv.2410.10127">10.48550/arxiv.2410.10127</a></li>
+<li>★ Qing Shi et al. (2025). <em>DSEBench: A Test Collection for Explainable Dataset Search with Examples</em>. arXiv (Cornell University). —. <a href="https://doi.org/10.48550/arxiv.2510.17228">10.48550/arxiv.2510.17228</a></li>
+</ul>
+<p><strong>R2 · Human queries &#x26; judging methodology (Route One)</strong></p>
+<ul>
+<li>Ben Carterette et al. (2006). <em>Minimal test collections for retrieval evaluation</em>. Proceedings of the 29th annual international ACM SIGIR conference on Research and development in information retrieval. 242 cites. <a href="https://doi.org/10.1145/1148170.1148219">10.1145/1148170.1148219</a></li>
+<li>Emine Yılmaz et al. (2006). <em>Estimating average precision with incomplete and imperfect judgments</em>. Proceedings of the 15th ACM international conference on Information and knowledge management - CIKM ‘06. 329 cites. <a href="https://doi.org/10.1145/1183614.1183633">10.1145/1183614.1183633</a></li>
+<li>Tetsuya Sakai et al. (2008). <em>On information retrieval metrics designed for evaluation with incomplete relevance assessments</em>. Information Retrieval. 128 cites. <a href="https://doi.org/10.1007/s10791-008-9059-7">10.1007/s10791-008-9059-7</a></li>
+<li>Emilia Kacprzak et al. (2018). <em>Characterising dataset search—An analysis of search logs and data requests</em>. Journal of Web Semantics. 57 cites. <a href="https://doi.org/10.1016/j.websem.2018.11.003">10.1016/j.websem.2018.11.003</a></li>
+</ul>
+<p><strong>R3 · LLM synthetic queries (Route Two-A)</strong></p>
+<ul>
+<li>Luiz Bonifacio et al. (2022). <em>InPars: Unsupervised Dataset Generation for Information Retrieval</em>. Proceedings of the 45th International ACM SIGIR Conference on Research and Development in Information Retrieval. 92 cites. <a href="https://doi.org/10.1145/3477495.3531863">10.1145/3477495.3531863</a></li>
+<li>Zhuyun Dai et al. (2022). <em>Promptagator: Few-shot Dense Retrieval From 8 Examples</em>. arXiv (Cornell University). 47 cites. <a href="https://doi.org/10.48550/arxiv.2209.11755">10.48550/arxiv.2209.11755</a></li>
+<li>Kexin Wang et al. (2022). <em>GPL: Generative Pseudo Labeling for Unsupervised Domain Adaptation of Dense Retrieval</em>. Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies. 69 cites. <a href="https://doi.org/10.18653/v1/2022.naacl-main.168">10.18653/v1/2022.naacl-main.168</a></li>
+<li>Mitko Gospodinov et al. (2023). <em>Doc2Query—: When Less is More</em>. arXiv (Cornell University). 1 cites. <a href="https://doi.org/10.48550/arxiv.2301.03266">10.48550/arxiv.2301.03266</a></li>
+<li>Marwah Alaofi et al. (2023). <em>Can Generative LLMs Create Query Variants for Test Collections? An Exploratory Study</em>. nan. 41 cites. <a href="https://doi.org/10.1145/3539618.3591960">10.1145/3539618.3591960</a></li>
+<li>Luyu Gao et al. (2023). <em>Precise Zero-Shot Dense Retrieval without Relevance Labels</em>. Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 241 cites. <a href="https://doi.org/10.18653/v1/2023.acl-long.99">10.18653/v1/2023.acl-long.99</a></li>
+<li>★ Sonal Sannigrahi et al. (2024). <em>Synthetic Query Generation using Large Language Models for Virtual Assistants</em>. Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval. 8 cites. <a href="https://doi.org/10.1145/3626772.3661355">10.1145/3626772.3661355</a></li>
+</ul>
+<p><strong>R4 · LLM relevance judging / synthetic qrels (Route Two-B)</strong></p>
+<ul>
+<li>Guglielmo Faggioli et al. (2023). <em>Perspectives on Large Language Models for Relevance Judgment</em>. Proceedings of the 2023 ACM SIGIR International Conference on Theory of Information Retrieval. 152 cites. <a href="https://doi.org/10.1145/3578337.3605136">10.1145/3578337.3605136</a></li>
+<li>Sean MacAvaney et al. (2023). <em>One-Shot Labeling for Automatic Relevance Estimation</em>. Proceedings of the 46th International ACM SIGIR Conference on Research and Development in Information Retrieval. 47 cites. <a href="https://doi.org/10.1145/3539618.3592032">10.1145/3539618.3592032</a></li>
+<li>★ Shivani Upadhyay et al. (2024). <em>UMBRELA: UMbrela is the (Open-Source Reproduction of the) Bing RELevance Assessor</em>. arXiv (Cornell University). 12 cites. <a href="https://doi.org/10.48550/arxiv.2406.06519">10.48550/arxiv.2406.06519</a></li>
+<li>★ Hossein A. Rahmani et al. (2024). <em>Synthetic Test Collections for Retrieval Evaluation</em>. Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval. 25 cites. <a href="https://doi.org/10.1145/3626772.3657942">10.1145/3626772.3657942</a></li>
+<li>★ Paul Thomas et al. (2024). <em>Large Language Models can Accurately Predict Searcher Preferences</em>. Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval. 132 cites. <a href="https://doi.org/10.1145/3626772.3657707">10.1145/3626772.3657707</a></li>
+<li>★ Marwah Alaofi et al. (2024). <em>LLMs can be Fooled into Labelling a Document as Relevant: best café near me; this paper is perfectly relevant</em>. Proceedings of the 2024 Annual International ACM SIGIR Conference on Research and Development in Information Retrieval in the Asia Pacific Region. 29 cites. <a href="https://doi.org/10.1145/3673791.3698431">10.1145/3673791.3698431</a></li>
+<li>★ Charles L. A. Clarke et al. (2024). <em>LLM-based relevance assessment still can’t replace human relevance assessment</em>. arXiv (Cornell University). 10 cites. <a href="https://doi.org/10.48550/arxiv.2412.17156">10.48550/arxiv.2412.17156</a></li>
+<li>★ Shivani Upadhyay et al. (2024). <em>A Large-Scale Study of Relevance Assessments with Large Language Models: An Initial Look</em>. arXiv (Cornell University). 7 cites. <a href="https://doi.org/10.48550/arxiv.2411.08275">10.48550/arxiv.2411.08275</a></li>
+<li>★ Hossein A. Rahmani et al. (2024). <em>JudgeBlender: Ensembling Judgments for Automatic Relevance Assessment</em>. arXiv (Cornell University). 2 cites. <a href="https://doi.org/10.48550/arxiv.2412.13268">10.48550/arxiv.2412.13268</a></li>
+<li>★ Negar Arabzadeh et al. (2025). <em>Benchmarking LLM-based Relevance Judgment Methods</em>. Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval. 9 cites. <a href="https://doi.org/10.1145/3726302.3730305">10.1145/3726302.3730305</a></li>
+<li>★ Laura Dietz et al. (2025). <em>Principles and Guidelines for the Use of LLM Judges</em>. Proceedings of the 2025 International ACM SIGIR Conference on Innovative Concepts and Theories in Information Retrieval (ICTIR). 15 cites. <a href="https://doi.org/10.1145/3731120.3744588">10.1145/3731120.3744588</a></li>
+</ul>
+<p><strong>R5 · Dataset-retrieval methods &#x26; support</strong></p>
+<ul>
+<li>Shuo Zhang et al. (2018). <em>Ad Hoc Table Retrieval using Semantic Similarity</em>. Proceedings of the 2018 World Wide Web Conference on World Wide Web - WWW ‘18. 127 cites. <a href="https://doi.org/10.1145/3178876.3186067">10.1145/3178876.3186067</a></li>
+<li>Dan Brickley et al. (2019). <em>Google Dataset Search: Building a search engine for datasets in an open Web ecosystem</em>. The World Wide Web Conference. 282 cites. <a href="https://doi.org/10.1145/3308558.3313685">10.1145/3308558.3313685</a></li>
+<li>Norman W. Paton et al. (2023). <em>Dataset Discovery and Exploration: A Survey</em>. ACM Computing Surveys. 32 cites. <a href="https://doi.org/10.1145/3626521">10.1145/3626521</a></li>
+<li>★ Qiaosheng Chen et al. (2024). <em>Enhancing Dataset Search with Compact Data Snippets</em>. Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval. 3 cites. <a href="https://doi.org/10.1145/3626772.3657837">10.1145/3626772.3657837</a></li>
+<li>★ Levy Silva et al. (2024). <em>Improving dense retrieval models with LLM augmented data for dataset search</em>. Knowledge-Based Systems. 23 cites. <a href="https://doi.org/10.1016/j.knosys.2024.111740">10.1016/j.knosys.2024.111740</a></li>
+<li>★ Moe Kayali et al. (2024). <em>Chorus: Foundation Models for Unified Data Discovery and Exploration</em>. Proceedings of the VLDB Endowment. 29 cites. <a href="https://doi.org/10.14778/3659437.3659461">10.14778/3659437.3659461</a></li>
+<li>★ Haoxiang Zhang et al. (2026). <em>AutoDDG: Automated Dataset Description Generation using Large Language Models</em>. Proceedings of the ACM on Management of Data. 1 cites. <a href="https://doi.org/10.1145/3786626">10.1145/3786626</a></li>
+</ul></article><hr class="my-8 border-dashed"><a href="https://github.com/beckzhou712/bzlab/edit/main/src/content/posts/vida/5 Building a Retrieval Benchmark on NYC Open Data.md" target="_blank" rel="noopener noreferrer" class="hover:text-accent text-muted-foreground flex justify-baseline gap-1.5 sm:hidden"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M7 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97L9 12v3h3zM16 5l3 3" /></svg><span>Edit page</span></a><div id="btt-btn-container" class="fixed inset-e-4 bottom-8 z-50 md:sticky md:inset-e-auto md:float-end md:me-1 translate-y-14 opacity-0 transition duration-500"><button data-button="back-to-top" class="group bg-background relative px-2 py-1 size-14 rounded-full shadow-xl md:h-8 md:w-fit md:rounded-md md:shadow-none md:focus-visible:rounded-none md:bg-background/35 md:bg-clip-padding md:backdrop-blur-lg"><span id="progress-indicator" class="absolute inset-0 -z-10 block size-14 scale-110 rounded-full bg-transparent md:hidden md:h-8 md:rounded-md"></span><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block rotate-90 md:hidden" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M5 12h14M5 12l6 6M5 12l6-6" /></svg><span class="group-hover:text-accent sr-only text-sm md:not-sr-only"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block size-4" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M12 5v14M16 9l-4-4M8 9l4-4" /></svg>Back to top</span></button></div><script data-astro-rerun>
+  function backToTop() {
+    const rootElement = document.documentElement;
+    const btnContainer = document.querySelector("#btt-btn-container");
+    const backToTopBtn = document.querySelector("[data-button='back-to-top']");
+    const progressIndicator = document.querySelector("#progress-indicator");
+
+    if (!rootElement || !btnContainer || !backToTopBtn || !progressIndicator)
+      return;
+
+    backToTopBtn.addEventListener("click", () => {
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+    });
+
+    let lastVisible = null;
+    function handleScroll() {
+      const scrollTotal = rootElement.scrollHeight - rootElement.clientHeight;
+      const scrollTop = rootElement.scrollTop;
+      const scrollPercent = Math.floor((scrollTop / scrollTotal) * 100);
+
+      progressIndicator.style.setProperty(
+        "background-image",
+        `conic-gradient(var(--accent), var(--accent) ${scrollPercent}%, transparent ${scrollPercent}%)`
+      );
+
+      const isVisible = scrollTop / scrollTotal > 0.3;
+
+      if (isVisible !== lastVisible) {
+        btnContainer.classList.toggle("opacity-100", isVisible);
+        btnContainer.classList.toggle("translate-y-0", isVisible);
+        btnContainer.classList.toggle("opacity-0", !isVisible);
+        btnContainer.classList.toggle("translate-y-14", !isVisible);
+        lastVisible = isVisible;
+      }
+    }
+
+    let ticking = false;
+    document.addEventListener("scroll", () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+  }
+  backToTop();
+</script><ul class="mt-4 mb-8 flex flex-wrap gap-4 sm:my-8"><li><a data-astro-transition-scope="astro-bztu2lml-1" href="/bzlab/tags/vida/" class="flex items-center gap-0.5 border-foreground border-b-2 border-dashed hover:border-accent hover:text-accent hover:-mt-0.5 focus-visible:text-accent focus-visible:border-none text-sm"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="opacity-80 size-4" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M5 9h14M5 15h14M11 4 7 20M17 4l-4 16" /></svg>vida</a></li></ul><div class="flex flex-none flex-col items-center justify-center gap-1 md:items-start"><span class="italic">Share this post:</span><div class="text-center"><a href="https://x.com/intent/post?url=https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/" title="Share this post on X" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center gap-1 hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="m4 4 11.733 16H20L8.267 4zM4 20l6.768-6.768m2.46-2.46L20 4" /></svg><span class="sr-only">Share this post on X</span></a><a href="https://t.me/share/url?url=https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/" title="Share this post on Telegram" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center gap-1 hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="m15 10-4 4 6 6 4-16-18 7 4 2 2 6 3-4" /></svg><span class="sr-only">Share this post on Telegram</span></a><a href="mailto:?subject=See%20this%20post&amp;body=https://beckzhou712.github.io/bzlab/posts/vida/5-building-a-retrieval-benchmark-on-nyc-open-data/" title="Share this post via email" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center gap-1 hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="m3 7 9 6 9-6" /></svg><span class="sr-only">Share this post via email</span></a></div></div><hr class="my-8 border-dashed"><div data-pagefind-ignore class="my-8 grid grid-cols-1 gap-6 sm:grid-cols-2"><a href="/bzlab/posts/vida/4-post-integration/" class="flex w-full gap-1 hover:opacity-75"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block flex-none rtl:rotate-180" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M5 12h14M5 12l6 6M5 12l6-6" /></svg><div><span>Previous Post</span><div class="text-accent/85 text-sm">Post-Integration</div></div></a><a href="/bzlab/posts/vida/6-refactoring-auctus-pipeline/" class="flex w-full justify-end gap-1 text-end hover:opacity-75 sm:col-start-2"><div><span>Next Post</span><div class="text-accent/85 text-sm">Refactoring Auctus Pipeline</div></div><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block flex-none rtl:rotate-180" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M5 12h14M13 18l6-6M13 6l6 6" /></svg></a></div><section class="giscus mt-12" aria-label="Comments"></section><script type="module">var e=`https://giscus.app`,t={"data-repo":`beckzhou712/bzlab`,"data-repo-id":`R_kgDOUCIeXg`,"data-category":`Announcements`,"data-category-id":`DIC_kwDOUCIeXs4DEMoC`,"data-mapping":`pathname`,"data-strict":`1`,"data-reactions-enabled":`1`,"data-emit-metadata":`0`,"data-input-position":`bottom`,"data-lang":`en`,"data-loading":`lazy`};function n(){return document.documentElement.getAttribute(`data-theme`)===`dark`?`dark_dimmed`:`light`}function r(){let r=document.querySelector(`.giscus`);if(!r)return;r.innerHTML=``;let i=document.createElement(`script`);i.src=`${e}/client.js`,i.crossOrigin=`anonymous`,i.async=!0;for(let[e,n]of Object.entries(t))i.setAttribute(e,n);i.setAttribute(`data-theme`,n()),r.appendChild(i)}function i(){document.querySelector(`iframe.giscus-frame`)?.contentWindow?.postMessage({giscus:{setConfig:{theme:n()}}},e)}function a(){new MutationObserver(i).observe(document.documentElement,{attributes:!0,attributeFilter:[`data-theme`]})}r(),a(),document.addEventListener(`astro:after-swap`,r);</script></main><footer class="app-layout mt-auto"><div class="border-border flex flex-col items-center justify-between border-t py-6 sm:flex-row-reverse sm:py-4"><div class="flex flex-wrap items-center gap-1"><a href="https://github.com/beckzhou712" title="bzlab on Github" class="group inline-flex items-center gap-1 hover:text-accent p-2 hover:rotate-6 sm:p-1"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" /></svg><span class="sr-only">bzlab on Github</span></a><a href="mailto:sz4984@nyu.edu" title="Send an email to bzlab" class="group inline-flex items-center gap-1 hover:text-accent p-2 hover:rotate-6 sm:p-1"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" /><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="m3 7 9 6 9-6" /></svg><span class="sr-only">Send an email to bzlab</span></a></div><div class="my-2 flex flex-col items-center whitespace-nowrap sm:flex-row"><span>Copyright &#169; 2026</span><span class="hidden sm:inline">&nbsp;|&nbsp;</span><span>All rights reserved.</span></div></div></footer><script type="module">var e=`theme`,t=`light`,n=`dark`;function r(){return localStorage.getItem(e)||(window.matchMedia(`(prefers-color-scheme: dark)`).matches?n:t)}var i=window.__theme?.value??r();function a(){localStorage.setItem(e,i),o()}function o(){let e=document.firstElementChild;e?.setAttribute(`data-theme`,i),e?.classList.toggle(`dark`,i===n),document.querySelector(`#theme-btn`)?.setAttribute(`aria-label`,i);let t=window.getComputedStyle(document.body).backgroundColor;document.querySelector(`meta[name='theme-color']`)?.setAttribute(`content`,t)}function s(){o(),document.querySelector(`#theme-btn`)?.addEventListener(`click`,()=>{i=i===t?n:t,a()})}s(),document.addEventListener(`astro:after-swap`,s),document.addEventListener(`astro:before-swap`,e=>{let t=document.querySelector(`meta[name='theme-color']`)?.getAttribute(`content`);t&&e.newDocument.querySelector(`meta[name='theme-color']`)?.setAttribute(`content`,t)}),window.matchMedia(`(prefers-color-scheme: dark)`).addEventListener(`change`,({matches:e})=>{i=e?n:t,a()});</script></body></html><script data-astro-rerun>
+  function createProgressBar() {
+    const progressContainer = document.createElement("div");
+    progressContainer.className =
+      "progress-container fixed top-0 z-10 h-1 w-full bg-background";
+
+    const progressBar = document.createElement("div");
+    progressBar.className = "progress-bar h-1 w-0 bg-accent";
+    progressBar.id = "myBar";
+
+    progressContainer.appendChild(progressBar);
+    document.body.appendChild(progressContainer);
+  }
+  createProgressBar();
+
+  function updateScrollProgress() {
+    document.addEventListener("scroll", () => {
+      const winScroll =
+        document.body.scrollTop || document.documentElement.scrollTop;
+      const height =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      if (document) {
+        const myBar = document.getElementById("myBar");
+        if (myBar) {
+          myBar.style.width = scrolled + "%";
+        }
+      }
+    });
+  }
+  updateScrollProgress();
+
+  function addHeadingLinks() {
+    const headings = Array.from(
+      document.querySelectorAll("h2, h3, h4, h5, h6")
+    );
+    for (const heading of headings) {
+      heading.classList.add("group");
+      const link = document.createElement("a");
+      link.className =
+        "heading-link ms-2 no-underline opacity-75 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
+      link.href = "#" + heading.id;
+
+      const span = document.createElement("span");
+      span.ariaHidden = "true";
+      span.innerText = "#";
+      link.appendChild(span);
+      heading.appendChild(link);
+    }
+  }
+  addHeadingLinks();
+
+  function attachCopyButtons() {
+    const copyButtonLabel = "Copy";
+    const codeBlocks = Array.from(document.querySelectorAll("pre"));
+
+    for (const codeBlock of codeBlocks) {
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+
+      const computedStyle = getComputedStyle(codeBlock);
+      const hasFileNameOffset =
+        computedStyle.getPropertyValue("--file-name-offset").trim() !== "";
+
+      const topClass = hasFileNameOffset
+        ? "top-(--file-name-offset)"
+        : "-top-3";
+
+      const copyButton = document.createElement("button");
+      copyButton.className = `copy-code absolute end-3 ${topClass} rounded bg-muted border border-muted px-2 py-1 text-xs leading-4 text-foreground font-medium`;
+      copyButton.innerHTML = copyButtonLabel;
+      codeBlock.setAttribute("tabindex", "0");
+      codeBlock.appendChild(copyButton);
+
+      codeBlock?.parentNode?.insertBefore(wrapper, codeBlock);
+      wrapper.appendChild(codeBlock);
+
+      copyButton.addEventListener("click", async () => {
+        await copyCode(codeBlock, copyButton);
+      });
+    }
+
+    async function copyCode(block, button) {
+      const code = block.querySelector("code");
+      const text = code?.innerText;
+
+      await navigator.clipboard.writeText(text ?? "");
+
+      button.innerText = "Copied";
+
+      setTimeout(() => {
+        button.innerText = copyButtonLabel;
+      }, 700);
+    }
+  }
+  attachCopyButtons();
+
+  /** Accessible image lightbox for article images. */
+  function initLightbox() {
+    const article = document.getElementById("article");
+    if (!article) return;
+
+    const prefersReducedMotion = () =>
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let overlay = null;
+    let lastFocused = null;
+
+    // Defer attribute mutations so they don't push the LCP timestamp.
+    // Event listeners below use delegation and don't need the attributes to exist yet.
+    requestAnimationFrame(() => {
+      const images = Array.from(article.querySelectorAll("img"));
+      for (const image of images) {
+        if (image.closest("a")) continue;
+        image.setAttribute("role", "button");
+        image.setAttribute("tabindex", "0");
+        image.setAttribute("aria-haspopup", "dialog");
+        image.setAttribute(
+          "aria-label",
+          image.alt ? `Zoom image: ${image.alt}` : "Zoom image"
+        );
+      }
+    });
+
+    function open(src, alt, trigger) {
+      if (overlay) return;
+      lastFocused = trigger ?? document.activeElement;
+
+      overlay = document.createElement("div");
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute(
+        "aria-label",
+        alt ? `Image preview: ${alt}` : "Image preview"
+      );
+      overlay.className =
+        "fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/70 backdrop-blur-sm opacity-0 transition-opacity duration-200 motion-reduce:transition-none";
+
+      const closeButton = document.createElement("button");
+      closeButton.type = "button";
+      closeButton.setAttribute("aria-label", "Close image preview");
+      closeButton.className =
+        "absolute end-4 top-4 rounded p-2 text-3xl leading-none text-white";
+      closeButton.innerHTML = "&#10005;";
+      closeButton.addEventListener("click", close);
+
+      const image = document.createElement("img");
+      image.src = src;
+      image.alt = "";
+      image.className =
+        "max-h-[90dvh] max-w-[90dvw] cursor-default object-contain";
+
+      overlay.append(closeButton, image);
+      overlay.addEventListener("click", e => {
+        if (e.target === overlay && currentScale <= 1) close();
+      });
+
+      let currentScale = 1;
+      let translateX = 0;
+      let translateY = 0;
+      let initialDist = 0;
+      let initialScale = 1;
+      let panStartX = 0;
+      let panStartY = 0;
+      let panStartTranslateX = 0;
+      let panStartTranslateY = 0;
+      let lastTapTime = 0;
+
+      function applyTransform() {
+        image.style.transform = `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+      }
+
+      function resetTransform() {
+        currentScale = 1;
+        translateX = 0;
+        translateY = 0;
+        image.style.transform = "";
+      }
+
+      overlay.addEventListener(
+        "touchstart",
+        e => {
+          const t = e.touches;
+          if (t.length === 2) {
+            initialDist = Math.hypot(
+              t[1].clientX - t[0].clientX,
+              t[1].clientY - t[0].clientY
+            );
+            initialScale = currentScale;
+          } else if (t.length === 1) {
+            const now = Date.now();
+            if (now - lastTapTime < 300) {
+              e.preventDefault();
+              if (currentScale > 1) {
+                resetTransform();
+              } else {
+                currentScale = 2;
+                translateX = 0;
+                translateY = 0;
+                applyTransform();
+              }
+              lastTapTime = 0;
+              panStartX = t[0].clientX;
+              panStartY = t[0].clientY;
+              panStartTranslateX = translateX;
+              panStartTranslateY = translateY;
+            } else {
+              lastTapTime = now;
+              if (currentScale > 1) {
+                panStartX = t[0].clientX;
+                panStartY = t[0].clientY;
+                panStartTranslateX = translateX;
+                panStartTranslateY = translateY;
+              }
+            }
+          }
+        },
+        { passive: false }
+      );
+
+      overlay.addEventListener(
+        "touchmove",
+        e => {
+          const t = e.touches;
+          if (t.length === 2) {
+            e.preventDefault();
+            const dist = Math.hypot(
+              t[1].clientX - t[0].clientX,
+              t[1].clientY - t[0].clientY
+            );
+            currentScale = Math.min(
+              4,
+              Math.max(1, initialScale * (dist / initialDist))
+            );
+            applyTransform();
+          } else if (t.length === 1) {
+            if (currentScale > 1) {
+              e.preventDefault();
+              translateX =
+                panStartTranslateX + (t[0].clientX - panStartX) / currentScale;
+              translateY =
+                panStartTranslateY + (t[0].clientY - panStartY) / currentScale;
+              const maxX = Math.max(
+                0,
+                (image.clientWidth - overlay.clientWidth / currentScale) / 2
+              );
+              const maxY = Math.max(
+                0,
+                (image.clientHeight - overlay.clientHeight / currentScale) / 2
+              );
+              translateX = Math.min(maxX, Math.max(-maxX, translateX));
+              translateY = Math.min(maxY, Math.max(-maxY, translateY));
+              applyTransform();
+            } else {
+              e.preventDefault();
+            }
+          }
+        },
+        { passive: false }
+      );
+
+      overlay.addEventListener("touchend", e => {
+        if (e.touches.length === 0 && currentScale <= 1.05) {
+          resetTransform();
+        }
+      });
+
+      overlay.addEventListener("touchcancel", e => {
+        if (e.touches.length === 0 && currentScale <= 1.05) {
+          resetTransform();
+        }
+      });
+
+      document.body.appendChild(overlay);
+      document.body.style.overflow = "hidden";
+      document.addEventListener("keydown", onKeyDown);
+      window.__closeLightbox = close;
+
+      requestAnimationFrame(() => overlay?.classList.add("opacity-100"));
+      closeButton.focus();
+    }
+
+    function close() {
+      if (!overlay) return;
+      const el = overlay;
+      overlay = null;
+      window.__closeLightbox = null;
+
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+      lastFocused?.focus();
+      lastFocused = null;
+
+      if (prefersReducedMotion()) {
+        el.remove();
+        return;
+      }
+      const remove = () => el.remove();
+      el.addEventListener("transitionend", remove, { once: true });
+      setTimeout(remove, 250); // fallback in case transitionend never fires
+      el.classList.remove("opacity-100");
+    }
+
+    function onKeyDown(e) {
+      if (e.key === "Escape") {
+        close();
+      } else if (e.key === "Tab") {
+        trapFocus(e);
+      }
+    }
+
+    // Keep keyboard focus inside the open dialog.
+    function trapFocus(e) {
+      if (!overlay) return;
+      const focusables = overlay.querySelectorAll(
+        'a[href], button, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    function triggerFromEvent(e) {
+      const image = e.target.closest("img");
+      if (!image || !article.contains(image) || image.closest("a")) return null;
+      return image;
+    }
+
+    function activate(image) {
+      open(image.currentSrc || image.src, image.alt, image);
+    }
+
+    article.addEventListener("click", e => {
+      const image = triggerFromEvent(e);
+      if (!image) return;
+      e.preventDefault();
+      activate(image);
+    });
+
+    article.addEventListener("keydown", e => {
+      if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+      const image = triggerFromEvent(e);
+      if (!image) return;
+      e.preventDefault();
+      activate(image);
+    });
+  }
+  initLightbox();
+
+  if (!window.__lightboxSwapBound) {
+    window.__lightboxSwapBound = true;
+    document.addEventListener("astro:before-swap", () =>
+      window.__closeLightbox?.()
+    );
+  }
+
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" })
+  );
+</script>
