@@ -1,0 +1,5 @@
+
+User-agent: *
+Allow: /
+
+Sitemap: https://beckzhou712.github.io/sitemap-index.xml
